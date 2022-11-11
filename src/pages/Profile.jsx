@@ -5,6 +5,8 @@ import { db } from "../firebase.config";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import homeIcon from "../assets/svg/homeIcon.svg";
+import arrowRight from "../assets/svg/keyboardArrowRightIcon.svg";
 
 function Profile() {
   const auth = getAuth();
@@ -26,11 +28,12 @@ function Profile() {
   const onSubmit = async () => {
     try {
       if (auth.currentUser.displayName !== name) {
-        // Update dispay name in firebase
+        // Update display name in fb
         await updateProfile(auth.currentUser, {
           displayName: name,
         });
-        // Update firestore
+
+        // Update in firestore
         const userRef = doc(db, "users", auth.currentUser.uid);
         await updateDoc(userRef, {
           name,
@@ -90,6 +93,11 @@ function Profile() {
             />
           </form>
         </div>
+        <Link className="createListing" to="/create-listing">
+          <img src={homeIcon} alt="Home" />
+          <p>Sell or rent your home</p>
+          <img src={arrowRight} alt="Arrow right" />
+        </Link>
       </main>
     </div>
   );
