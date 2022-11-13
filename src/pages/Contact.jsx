@@ -1,14 +1,14 @@
-import React from "react";
 import { useState, useEffect } from "react";
-import { useSearchParams, useParams } from "react-router-dom";
-import { getDoc, doc } from "firebase/firestore";
+import { useParams, useSearchParams } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase.config";
 import { toast } from "react-toastify";
 
 function Contact() {
-  const [message, setMessage] = useEffect("");
-  const [landlord, setLandlord] = useEffect(null);
-  const [searchParams, setSearchParams] = useEffect();
+  const [message, setMessage] = useState("");
+  const [landlord, setLandlord] = useState(null);
+  // eslint-disable-next-line
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const params = useParams();
 
@@ -34,11 +34,13 @@ function Contact() {
       <header>
         <p className="pageHeader">Contact Landlord</p>
       </header>
+
       {landlord !== null && (
         <main>
           <div className="contactLandlord">
             <p className="landlordName">Contact {landlord?.name}</p>
           </div>
+
           <form className="messageForm">
             <div className="messageDiv">
               <label htmlFor="message" className="messageLabel">
@@ -52,6 +54,7 @@ function Contact() {
                 onChange={onChange}
               ></textarea>
             </div>
+
             <a
               href={`mailto:${landlord.email}?Subject=${searchParams.get(
                 "listingName"

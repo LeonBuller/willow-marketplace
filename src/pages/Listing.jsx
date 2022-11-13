@@ -1,20 +1,17 @@
-import React from "react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import SwiperCore, { Navigation, Pagination, Scrollbar, A11y } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.css";
 import { getDoc, doc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { db } from "../firebase.config";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import Spinner from "../components/Spinner";
-import SwiperCore, { Navigation, pagination, Scrollbar, A11y } from "swiper";
 import shareIcon from "../assets/svg/shareIcon.svg";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
-import "swiper/css/a11y";
-import "swiper/swiper-bundle.css";
+SwiperCore.use([Navigation, Pagination, Scrollbar, A11y]);
+
 function Listing() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,22 +23,27 @@ function Listing() {
 
   useEffect(() => {
     const fetchListing = async () => {
-      const docRef = db(db, "listings", params.listingId);
+      const docRef = doc(db, "listings", params.listingId);
       const docSnap = await getDoc(docRef);
+
       if (docSnap.exists()) {
-        console.log(docSnap.data());
         setListing(docSnap.data());
         setLoading(false);
       }
     };
+
     fetchListing();
   }, [navigate, params.listingId]);
 
   if (loading) {
     return <Spinner />;
   }
+
   return (
     <main>
+      <Helmet>
+        <title>{listing.name}</title>
+      </Helmet>
       <Swiper slidesPerView={1} pagination={{ clickable: true }}>
         {listing.imgUrls.map((url, index) => (
           <SwiperSlide key={index}>
@@ -55,6 +57,7 @@ function Listing() {
           </SwiperSlide>
         ))}
       </Swiper>
+
       <div
         className="shareIconDiv"
         onClick={() => {
@@ -67,7 +70,9 @@ function Listing() {
       >
         <img src={shareIcon} alt="" />
       </div>
+
       {shareLinkCopied && <p className="linkCopied">Link Copied!</p>}
+
       <div className="listingDetails">
         <p className="listingName">
           {listing.name} - $
@@ -88,18 +93,22 @@ function Listing() {
             ${listing.regularPrice - listing.discountedPrice} discount
           </p>
         )}
+
         <ul className="listingDetailsList">
           <li>
-            {listing.bedrooms > 1 ? `{listing.bedrooms} Bedrooms` : "1 Bedroom"}
+            {listing.bedrooms > 1
+              ? `${listing.bedrooms} Bedrooms`
+              : "1 Bedroom"}
           </li>
           <li>
             {listing.bathrooms > 1
-              ? `{listing.bedrooms} bathrooms`
+              ? `${listing.bathrooms} Bathrooms`
               : "1 Bathroom"}
           </li>
-          <li>{listing.parkingSpot && "Parking Spot"}</li>
+          <li>{listing.parking && "Parking Spot"}</li>
           <li>{listing.furnished && "Furnished"}</li>
         </ul>
+
         <p className="listingLocationTitle">Location</p>
 
         <div className="leafletContainer">
@@ -113,6 +122,7 @@ function Listing() {
               attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png"
             />
+
             <Marker
               position={[listing.geolocation.lat, listing.geolocation.lng]}
             >
@@ -121,9 +131,9 @@ function Listing() {
           </MapContainer>
         </div>
 
-        {auth.currentUser.uid === listing.userRef && (
+        {auth.currentUser?.uid !== listing.userRef && (
           <Link
-            to={`/contact/${listing.userRef}?listingName=${listing.name}&`}
+            to={`/contact/${listing.userRef}?listingName=${listing.name}`}
             className="primaryButton"
           >
             Contact Landlord
