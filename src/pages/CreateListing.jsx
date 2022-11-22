@@ -158,9 +158,10 @@ function CreateListing() {
 
     const imgUrls = await Promise.all(
       [...images].map((image) => storeImage(image))
-    ).catch(() => {
+    ).catch((error) => {
+      console.log(error);
       setLoading(false);
-      toast.error("Images not uploaded");
+      toast.error("Image sizes are too large");
       return;
     });
 

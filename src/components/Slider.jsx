@@ -28,7 +28,7 @@ function Slider() {
           data: doc.data(),
         });
       });
-
+      console.log(listings);
       setListings(listings);
       setLoading(false);
     };
