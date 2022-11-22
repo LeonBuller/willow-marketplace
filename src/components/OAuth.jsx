@@ -17,10 +17,11 @@ function OAuth() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      const docRef = doc(db, "users", user.uid); //Getting the user from the result.user and passing it's uid to see if the uid EXISTS ALREADY in the db
+      // Check for user
+      const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
-      // If the user DOESNT exist then create one
+      // If user, doesn't exist, create user
       if (!docSnap.exists()) {
         await setDoc(doc(db, "users", user.uid), {
           name: user.displayName,
@@ -33,14 +34,12 @@ function OAuth() {
       toast.error("Could not authorize with Google");
     }
   };
+
   return (
     <div className="socialLogin">
-      <p>
-        Sign {location.pathname === "/sign-up" ? "up" : "in"}
-        with
-      </p>
+      <p>Sign {location.pathname === "/sign-up" ? "up" : "in"} with </p>
       <button className="socialIconDiv" onClick={onGoogleClick}>
-        <img className="socialIconImg" src={googleIcon} alt="Google" />
+        <img className="socialIconImg" src={googleIcon} alt="google" />
       </button>
     </div>
   );

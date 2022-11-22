@@ -1,134 +1,147 @@
-import { useEffect, useState } from "react";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-} from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import SwiperCore, { Navigation, Pagination, Scrollbar, A11y } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.css";
+import { getDoc, doc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { db } from "../firebase.config";
-import { toast } from "react-toastify";
 import Spinner from "../components/Spinner";
-import ListingItem from "../components/ListingItem";
+import shareIcon from "../assets/svg/shareIcon.svg";
+SwiperCore.use([Navigation, Pagination, Scrollbar, A11y]);
 
-function Offers() {
-  const [listings, setListings] = useState(null);
+function Listing() {
+  const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [lastFetchedListing, setLastFetchedListing] = useState(null);
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+
+  const navigate = useNavigate();
+  const params = useParams();
+  const auth = getAuth();
 
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        // Get reference
-        const listingsRef = collection(db, "listings");
+    const fetchListing = async () => {
+      const docRef = doc(db, "listings", params.listingId);
+      const docSnap = await getDoc(docRef);
 
-        // Create a query
-        const q = query(
-          listingsRef,
-          where("offer", "==", true),
-          orderBy("timestamp", "desc"),
-          limit(10)
-        );
-
-        // Execute query
-        const querySnap = await getDocs(q);
-
-        const lastVisible = querySnap.docs[querySnap.docs.length - 1];
-        setLastFetchedListing(lastVisible);
-
-        const listings = [];
-
-        querySnap.forEach((doc) => {
-          return listings.push({
-            id: doc.id,
-            data: doc.data(),
-          });
-        });
-
-        setListings(listings);
+      if (docSnap.exists()) {
+        setListing(docSnap.data());
         setLoading(false);
-      } catch (error) {
-        toast.error("Could not fetch listings");
       }
     };
 
-    fetchListings();
-  }, []);
+    fetchListing();
+  }, [navigate, params.listingId]);
 
-  // Pagination / Load More
-  const onFetchMoreListings = async () => {
-    try {
-      // Get reference
-      const listingsRef = collection(db, "listings");
-
-      // Create a query
-      const q = query(
-        listingsRef,
-        where("offer", "==", true),
-        orderBy("timestamp", "desc"),
-        startAfter(lastFetchedListing),
-        limit(10)
-      );
-
-      // Execute query
-      const querySnap = await getDocs(q);
-
-      const lastVisible = querySnap.docs[querySnap.docs.length - 1];
-      setLastFetchedListing(lastVisible);
-
-      const listings = [];
-
-      querySnap.forEach((doc) => {
-        return listings.push({
-          id: doc.id,
-          data: doc.data(),
-        });
-      });
-
-      setListings((prevState) => [...prevState, ...listings]);
-      setLoading(false);
-    } catch (error) {
-      toast.error("Could not fetch listings");
-    }
-  };
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
-    <div className="category">
-      <header>
-        <p className="pageHeader">Offers</p>
-      </header>
+    <main>
+      <Helmet>
+        <title>{listing.name}</title>
+      </Helmet>
+      <Swiper slidesPerView={1} pagination={{ clickable: true }}>
+        {listing.imgUrls.map((url, index) => (
+          <SwiperSlide key={index}>
+            <div
+              style={{
+                background: `url(${listing.imgUrls[index]}) center no-repeat`,
+                backgroundSize: "cover",
+              }}
+              className="swiperSlideDiv"
+            ></div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
 
-      {loading ? (
-        <Spinner />
-      ) : listings && listings.length > 0 ? (
-        <>
-          <main>
-            <ul className="categoryListings">
-              {listings.map((listing) => (
-                <ListingItem
-                  listing={listing.data}
-                  id={listing.id}
-                  key={listing.id}
-                />
-              ))}
-            </ul>
-          </main>
+      <div
+        className="shareIconDiv"
+        onClick={() => {
+          navigator.clipboard.writeText(window.location.href);
+          setShareLinkCopied(true);
+          setTimeout(() => {
+            setShareLinkCopied(false);
+          }, 2000);
+        }}
+      >
+        <img src={shareIcon} alt="" />
+      </div>
 
-          <br />
-          <br />
-          {lastFetchedListing && (
-            <p className="loadMore" onClick={onFetchMoreListings}>
-              Load More
-            </p>
-          )}
-        </>
-      ) : (
-        <p>There are no current offers</p>
-      )}
-    </div>
+      {shareLinkCopied && <p className="linkCopied">Link Copied!</p>}
+
+      <div className="listingDetails">
+        <p className="listingName">
+          {listing.name} - $
+          {listing.offer
+            ? listing.discountedPrice
+                .toString()
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            : listing.regularPrice
+                .toString()
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+        </p>
+        <p className="listingLocation">{listing.location}</p>
+        <p className="listingType">
+          For {listing.type === "rent" ? "Rent" : "Sale"}
+        </p>
+        {listing.offer && (
+          <p className="discountPrice">
+            ${listing.regularPrice - listing.discountedPrice} discount
+          </p>
+        )}
+
+        <ul className="listingDetailsList">
+          <li>
+            {listing.bedrooms > 1
+              ? `${listing.bedrooms} Bedrooms`
+              : "1 Bedroom"}
+          </li>
+          <li>
+            {listing.bathrooms > 1
+              ? `${listing.bathrooms} Bathrooms`
+              : "1 Bathroom"}
+          </li>
+          <li>{listing.parking && "Parking Spot"}</li>
+          <li>{listing.furnished && "Furnished"}</li>
+        </ul>
+
+        <p className="listingLocationTitle">Location</p>
+
+        <div className="leafletContainer">
+          <MapContainer
+            style={{ height: "100%", width: "100%" }}
+            center={[listing.geolocation.lat, listing.geolocation.lng]}
+            zoom={13}
+            scrollWheelZoom={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png"
+            />
+
+            <Marker
+              position={[listing.geolocation.lat, listing.geolocation.lng]}
+            >
+              <Popup>{listing.location}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+
+        {auth.currentUser?.uid !== listing.userRef && (
+          <Link
+            to={`/contact/${listing.userRef}?listingName=${listing.name}`}
+            className="primaryButton"
+          >
+            Contact Landlord
+          </Link>
+        )}
+      </div>
+    </main>
   );
 }
 
-export default Offers;
+export default Listing;
