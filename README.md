@@ -1,4 +1,4 @@
-Marketplace for selling and renting properties created using React as the frontend and Firebase as the backend. Used Oauth 2.0 and added Gmail as another way to let the user sign up. Used custom hooks as well as leaflet API which will show an accurate location on the map.
+Marketplace for selling and renting properties created using **React** as the frontend and **Firebase** as the backend. Used **Oauth 2.0** and added Gmail as another way to let the user sign up. Used **custom hooks** as well as **leaflet API** which will show an accurate location on the map.
 
 # Getting Started with Create React App
 
