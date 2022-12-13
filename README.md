@@ -1,4 +1,4 @@
-Marketplace for selling and renting properties created using **React** as the frontend and **Firebase** as the backend. Used **Oauth 2.0** and added Gmail as another way to let the user sign up. Used **custom hooks** as well as **leaflet API** which will show an accurate location on the map.
+Fullstack application created using React and Firebase which allows users create a username using their email or their gmail acount thanks to OAuth 2.0. They cant upload a new listing for rent or sale, edit the listing. Used a really interesting package called LeafletJS which will show an accurate locaiton of the listing according to the address.
 
 # Getting Started with Create React App
 
