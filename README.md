@@ -1,3 +1,5 @@
+Fullstack application created using **React** and **Firebase** which allows users create a username using their email or their gmail acount thanks to **OAuth 2.0**. They cant upload a new listing for rent or sale, edit the listing. Used a really interesting package called **LeafletJS** which will show an accurate locaiton of the listing according to the address.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
